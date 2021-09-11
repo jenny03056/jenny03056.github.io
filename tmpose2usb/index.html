@@ -107,26 +107,26 @@
              
             if(prediction[i].className=="ok" && prediction[i].probability>spec){
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(2));
-                serialLEDController.write("1");
+                serialLEDController.write("1#");
             }
             if(prediction[i].className=="left" && prediction[i].probability>spec){
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(4));
-                serialLEDController.write("2");
+                serialLEDController.write("2#");
             }
             if(prediction[i].className=="right" && prediction[i].probability>spec){
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(4));
-                serialLEDController.write("3");
+                serialLEDController.write("3#");
             }
             if(prediction[i].className=="far" && prediction[i].probability>spec){
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(4));
-                serialLEDController.write("4");
+                serialLEDController.write("4#");
             }
             if(prediction[i].className=="close" && prediction[i].probability>spec){
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(4));
-                serialLEDController.write("5");
+                serialLEDController.write("5#");
             }
             if(prediction[i].className=="other" && prediction[i].probability>spec){
-                serialLEDController.write("6");
+                serialLEDController.write("6#");
                 console.log(prediction[i].className + ": " + prediction[i].probability.toFixed(4));
             }            
          }
