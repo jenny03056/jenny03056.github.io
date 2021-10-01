@@ -105,7 +105,7 @@ async function getReader() {
         try {
           const { y, p, r } = JSON.parse(buffer);
         // 	console.log(y, p,r);
-           modelViewerTransform.orientation = `${r}deg ${p}deg ${y}deg`;
+           modelViewerTransform.orientation = `${p}deg ${r}deg ${y}deg`;
            modelViewerTransform.updateFraming();
         } catch (err) {
           console.log(err);
