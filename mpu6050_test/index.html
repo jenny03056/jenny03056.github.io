@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<head> 
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style> 
+      model-viewer{
+            width: 800px;
+            height: 600px; 
+            margin: 0 uato;
+      }
+   </style>
+</head>
+<html>
+ <body>
+  <div>
+      <h2 align='left' style='color:blue'>Test MPU6050 </h2>
+  </div>
+    <button id="SerialConnectButton">1 - 選擇連結的序列埠</button>
+    <!--label>需開啟 chrome://flags/#enable-experimental-web-platform-features</label-->
+    <div class="container">
+         <!--model-viewer id="transform" orientation="0 0 0" camera-controls ar ar-modes="webxr scene-viewer quick-look" src="./Astronaut.glb" alt="A 3D model of a chair"-->
+          <!--model-viewer id="transform" orientation="0 0 0" camera-controls ar ar-modes="webxr scene-viewer quick-look" src="./DamagedHelmet.glb" skybox-image="./spruit_sunrise_1k_HDR.hdr" alt="A 3D model of a chair"-->
+            <model-viewer id="transform" orientation="0 0 0" camera-controls ar ar-modes="webxr scene-viewer quick-look" src="./airplane.glb" skybox-image="./spruit_sunrise_1k_HDR.hdr" alt="A 3D model of a chair">
+            </div>
+      </model-viewer>
+          </div>
+  </body>  
+<script>
+
+/*
+ * Web Serial API (Google Chrome)
+ *
+ * Useful information used to this implementation:
+ * https://github.com/svendahlstrand/web-serial-api/
+ * https://dev.to/unjavascripter/the-amazing-powers-of-the-web-web-serial-api-3ilc
+ *
+ */
+
+const connectButton = document.getElementById ('SerialConnectButton');
+let port;
+let decoder = new TextDecoderStream();
+
+if ('serial' in navigator) {
+  connectButton.addEventListener('click', function () {
+    if (port) {
+     // term.write('\x1b[31mDisconnected from Serial Port\x1b[m\r\n');
+     // const reader = decoder.readable.getReader();
+    
+    // decoder.readable.getReader().cancel();
+    // decoder.readable.getReader().realeaseLock();
+      port.close();
+      port = undefined;
+      connectButton.innerText = 'Connect';
+    }
+    else {
+      connectButton.innerText = 'Disconnect';
+      getReader();
+    }
+  });
+
+  connectButton.disabled = false;
+}
+else {
+  const error = document.createElement('p');
+  error.innerHTML = '<p>Support for Serial Web API not enabled. Please enable it using chrome://flags/ and enable Experimental Web Platform fetures</p>';
+
+}
+
+async function serialWrite(data) {
+	encoder = new TextEncoder();
+	const dataArrayBuffer = encoder.encode(data);
+
+	if (port && port.writable) {
+		const writer = port.writable.getWriter();
+		writer.write(dataArrayBuffer);
+		writer.releaseLock();
+	}
+}
+
+async function getReader() {
+    port = await navigator.serial.requestPort({});
+
+    await port.open({ baudRate: 115200 });
+
+
+        connectButton.innerText = 'Disconnect';
+        console.log('\x1b[31mConnected using Web Serial API !\x1b[m\r\n');
+		
+  port.readable.pipeTo(decoder.writable);
+  const reader = decoder.readable.getReader();
+
+  try {
+    let buffer = '';
+
+    const timerId = setInterval(async () => {
+      const { value, done } = await reader.read();
+     
+      buffer += value;
+
+      if (buffer.includes('{') && buffer.includes('}')) {
+      // console.log(buffer);
+        const start = buffer.indexOf('{');
+        const end = buffer.indexOf('}');
+        buffer = buffer.slice(start, end + 1);
+        try {
+          const { y, p, r } = JSON.parse(buffer);
+        // 	console.log(y, p,r);
+           modelViewerTransform.orientation = `${r}deg ${p}deg ${y}deg`;
+           modelViewerTransform.updateFraming();
+        } catch (err) {
+          console.log(err);
+        }
+        buffer = '';
+      }
+    }, 2);
+  } catch (err) {
+    console.log(err);
+  }
+}
+	  
+ //   const myArr = str.split(" ", 2);
+//document.getElementById("demo").innerHTML = myArr[1];
+
+const modelViewerTransform = document.querySelector("model-viewer#transform");
+const roll = document.querySelector('#roll');
+const pitch = document.querySelector('#pitch');
+const yaw = document.querySelector('#yaw');
+const x = document.querySelector('#x');
+const y = document.querySelector('#y');
+const z = document.querySelector('#z');
+const frame = document.querySelector('#frame');
+
+frame.addEventListener('click', () => {
+  modelViewerTransform.updateFraming();
+});
+
+const updateOrientation = () => {
+  modelViewerTransform.orientation = `${roll.value}deg ${pitch.value}deg ${yaw.value}deg`;
+};
+
+const updateScale = () => {
+  modelViewerTransform.scale = `${x.value} ${y.value} ${z.value}`;
+};
+
+roll.addEventListener('input', () => {
+  updateOrientation();
+});
+pitch.addEventListener('input', () => {
+  updateOrientation();
+});
+yaw.addEventListener('input', () => {
+  updateOrientation();
+});
+x.addEventListener('input', () => {
+  updateScale();
+});
+y.addEventListener('input', () => {
+  updateScale();
+});
+z.addEventListener('input', () => {
+  updateScale();
+});
+</script>
+</html>
